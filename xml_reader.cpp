@@ -33,7 +33,7 @@ int xml_reader::depth()
 	return root.size();
 }
 
-const element& xml_reader::get_parent()//∂¡»Îµ±«∞‘™Àÿµƒ÷±Ω”∏∏‘™Àÿ£¨»Ù“—µΩ¥ÔEOF£¨‘Ú∑µªÿø’‘™Àÿ
+const element& xml_reader::get_parent()//ËØªÂÖ•ÂΩìÂâçÂÖÉÁ¥†ÁöÑÁõ¥Êé•Áà∂ÂÖÉÁ¥†ÔºåËã•Â∑≤Âà∞ËææEOFÔºåÂàôËøîÂõûÁ©∫ÂÖÉÁ¥†
 {
 	if (!this->eof())
 		return root.top();
@@ -57,9 +57,9 @@ bool xml_reader::is_open()
 	return ifs.is_open();
 }
 
-const element& xml_reader::read()//∂¡»Î“ª∏ˆ‘™Àÿ
-//∂¡»°µƒÀ≥–Ú «…Ó∂»”≈œ»
-//»Ù“—µΩ¥ÔEOF£¨∑µªÿ“ª∏ˆø’‘™Àÿ
+const element& xml_reader::read()//ËØªÂÖ•‰∏Ä‰∏™ÂÖÉÁ¥†
+//ËØªÂèñÁöÑÈ°∫Â∫èÊòØÊ∑±Â∫¶‰ºòÂÖà
+//Ëã•Â∑≤Âà∞ËææEOFÔºåËøîÂõû‰∏Ä‰∏™Á©∫ÂÖÉÁ¥†
 {
 	if (!single)
 		root.emplace(elem);
@@ -81,17 +81,17 @@ const element& xml_reader::read()//∂¡»Î“ª∏ˆ‘™Àÿ
 	}
 	if (ifs.eof())
 		return elem;
-	while (buf != '>' && buf != ' ')//∂¡»°‘™Àÿ√˚◊÷
+	while (buf != '>' && buf != ' ')//ËØªÂèñÂÖÉÁ¥†ÂêçÂ≠ó
 	{
 		elem.name += buf;
 		buf = ifs.get();
 	}
-	if (buf != '>')//≈–∂œ «∑Ò”– Ù–‘
+	if (buf != '>')//Âà§Êñ≠ÊòØÂê¶ÊúâÂ±ûÊÄß
 	{
-		//∂¡»°‘™Àÿ Ù–‘
+		//ËØªÂèñÂÖÉÁ¥†Â±ûÊÄß
 		while (buf != '>')
 		{
-			//≈–∂œµ•±Í«©‘™Àÿ
+			//Âà§Êñ≠ÂçïÊ†áÁ≠æÂÖÉÁ¥†
 			if (buf == '/')
 			{
 				while (buf != '<')
@@ -108,9 +108,9 @@ const element& xml_reader::read()//∂¡»Î“ª∏ˆ‘™Àÿ
 				elem.attributes.back().name += buf;
 				buf = ifs.get();
 			}
-			char punctuation = ifs.get();//“˝∫≈
+			char punctuation = ifs.get();//ÂºïÂè∑
 			buf = ifs.get();
-			while (buf != punctuation)//“˝∫≈ƒ⁄∂¡»°“˝∫≈”–Œ Ã‚£¨‘›Œ¥¥¶¿Ì
+			while (buf != punctuation)//ÂºïÂè∑ÂÜÖËØªÂèñÂºïÂè∑ÊúâÈóÆÈ¢òÔºåÊöÇÊú™Â§ÑÁêÜ
 			{
 				elem.attributes.back().content += buf;
 				buf = ifs.get();
@@ -118,87 +118,40 @@ const element& xml_reader::read()//∂¡»Î“ª∏ˆ‘™Àÿ
 			buf = ifs.get();
 		}
 	}
-	if (buf != '<')//≈–∂œ «∑Ò”–∑«‘™Àÿƒ⁄»›
+	if (buf != '<')//Âà§Êñ≠ÊòØÂê¶ÊúâÂÖÉÁ¥†ÂÜÖÂÆπ
 	{
 		buf = ifs.get();
-		while (buf != '<' && buf != '\n' && buf != '\t')//∂¡»°‘™Àÿƒ⁄»›
-			//–Ë“™◊™“Â£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°£°
+		while (buf != '<' && buf != '\n' && buf != '\t')//ËØªÂèñÂÖÉÁ¥†ÂÜÖÂÆπ
 		{
-			while (buf == '&')
+			if (buf == '&')
 			{
-				char buf1 = ifs.get();
-				char buf2 = ifs.get();
-				char buf3 = ifs.get();
-				if (buf1 == 'l' && buf2 == 't' && buf3 == ';')
+				char escape_buf[8];
+				ifs.getline(escape_buf, 8, ';');
+				if (strncmp(escape_buf, "lt", 8)==0)
 				{
-					elem.content += '<';
+					buf = '<';
 				}
-				else if (buf1 == 'g' && buf2 == 't' && buf3 == ';')
+				else if (strncmp(escape_buf, "gt", 8)==0)
 				{
-					elem.content += '>';
+					buf = '>';
 				}
-				else if (buf1 == 'a' && buf2 == 'm' && buf3 == 'p')
+				else if (strncmp(escape_buf, "amp", 8)==0)
 				{
-					char buf4 = ifs.get();
-					if (buf4 == ';')
-					{
-						elem.content += '&';
-					}
-					else
-					{
-						elem.content += buf1;
-						elem.content += buf2;
-						elem.content += buf3;
-						elem.content += buf4;
-					}
-
+					buf = '&';
 				}
-				else if (buf1 == 'a' && buf2 == 'p' && buf3 == 'o')
+				else if (strncmp(escape_buf, "apos", 8)==0)
 				{
-					char buf4 = ifs.get();
-					char buf5 = ifs.get();
-					if (buf4 == 's' && buf5 == ';')
-					{
-						elem.content += '\'';
-					}
-					else
-					{
-						elem.content += buf1;
-						elem.content += buf2;
-						elem.content += buf3;
-						elem.content += buf4;
-						elem.content += buf5;
-					}
+					buf = '\'';
 				}
-				else if (buf1 == 'q' && buf2 == 'u' && buf3 == 'o')
+				else if (strncmp(escape_buf, "quot", 8)==0)
 				{
-					char buf4 = ifs.get();
-					char buf5 = ifs.get();
-					if (buf4 == 't' && buf5 == ';')
-					{
-						elem.content += '\"';
-					}
-					else
-					{
-						elem.content += buf1;
-						elem.content += buf2;
-						elem.content += buf3;
-						elem.content += buf4;
-						elem.content += buf5;
-					}
+					buf = '"';
 				}
-				else
-				{
-					elem.content += buf1;
-					elem.content += buf2;
-					elem.content += buf3;
-				}
-				buf = ifs.get();
 			}
 			elem.content += buf;
 			buf = ifs.get();
 		}
-		while (buf != '<')
+		while (buf != '<')//Ê∏ÖÈô§ÂõûËΩ¶Á¨¶ÔºåÂà∂Ë°®Á¨¶
 		{
 			buf = ifs.get();
 		}
@@ -217,7 +170,7 @@ xml_reader::xml_reader(const string& path)
 	ifs.open(path, ios::in);
 	while (ifs.get() != '>');
 	while (ifs.get() != '<');
-	//ªÒ»°Œƒº˛À˘‘⁄ƒø¬º
+	//Ëé∑ÂèñÊñá‰ª∂ÊâÄÂú®ÁõÆÂΩï
 	dir = path;
 	size_t pos = dir.rfind('/');
 	if (pos < dir.length())
@@ -275,8 +228,8 @@ bool element_node::is_leaf()
 
 element_tree::element_tree() :_root(NULL) {};
 
-element_tree::element_tree(xml_reader& xr)//“‘xr◊Ó∫Û“ª¥Œ∂¡»ÎµƒΩ⁄µ„Œ™∏˘ππ‘Ï‘™Àÿ ˜
-//∏√∫Ø ˝“∆∂ØŒƒº˛÷∏’Î
+element_tree::element_tree(xml_reader& xr)//‰ª•xrÊúÄÂêé‰∏ÄÊ¨°ËØªÂÖ•ÁöÑËäÇÁÇπ‰∏∫Ê†πÊûÑÈÄ†ÂÖÉÁ¥†Ê†ë
+//ËØ•ÂáΩÊï∞ÁßªÂä®Êñá‰ª∂ÊåáÈíà
 {
 	if (xr.eof()) return;
 	_root = new element_node(xr.get_cur());
